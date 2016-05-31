@@ -1,6 +1,7 @@
 <html>
 	<head>
 		<script type="text/javascript" src="three.js"></script>
+		<script type="text/javascript" src="OrbitControls.js"></script>
 		<script type="text/javascript">
 
 var width = window.innerWidth - 40;
@@ -22,13 +23,14 @@ var starCount = 1000;
 var starSphereRadius = 50;
 
 var scene;
+var controls;
 var camera;
 var renderer;
 var galaxy;
 var clusters = [];
 var clusterGeo;
 
-var animateCamera = true;
+var animateCamera = false;
 var animateGalaxy = true;
 
 var cameraRotation = Math.PI / 4;
@@ -36,12 +38,13 @@ var cameraRotationInc = -Math.PI / 1024;
 
 function init() {
 	scene = new THREE.Scene();
-	camera = new THREE.PerspectiveCamera(90, aspect, 0.1, 1000);
-	camera.rotateOnAxis(xAxis, -cameraRotation);
+	initCamera();
 
 	renderer = new THREE.WebGLRenderer();
 	renderer.setSize(width, height);
 	document.body.appendChild( renderer.domElement );
+	
+	initControls(camera, renderer);
 	
 	addLights(scene);
 	
@@ -50,6 +53,24 @@ function init() {
 	addBackground(scene);
 	
 	render();
+}
+
+function initCamera() {
+	camera = new THREE.PerspectiveCamera(90, aspect, 0.1, 1000);
+	camera.rotateOnAxis(xAxis, -cameraRotation);
+	updateCameraPosition();
+}
+
+function updateCameraPosition() {
+	camera.position.y = Math.sin(cameraRotation) * cameraDistance;
+	camera.position.z = Math.cos(cameraRotation) * cameraDistance;
+}
+
+function initControls(camera, renderer) {
+	controls = new THREE.OrbitControls( camera, renderer.domElement );
+//	controls.enableDamping = true;
+//	controls.dampingFactor = 0.25;
+//	controls.enableZoom = false;
 }
 
 function addLights(scene) {
@@ -110,12 +131,12 @@ function addBackground(scene) {
 	
 function render() {
 	requestAnimationFrame(render);
+	controls.update();
 	if (animateCamera) {
 		cameraRotation += cameraRotationInc;
 		camera.rotateOnAxis(xAxis, -cameraRotationInc);
+		updateCameraPosition();
 	}
-	camera.position.y = Math.sin(cameraRotation) * cameraDistance;
-	camera.position.z = Math.cos(cameraRotation) * cameraDistance;
 	if (animateGalaxy) {
 		for (var i = 0; i < clusters.length; i++) {
 			var cluster = clusters[i];
