@@ -1,0 +1,107 @@
+<html>
+	<head>
+		<script type="text/javascript" src="three.js"></script>
+		<script type="text/javascript">
+
+var width = 1000;
+var height = 600;
+var aspect = width / height;
+var cameraDistance = 10;
+var clusterSize = 1;
+var clusterCount = 1000;
+var galaxyRadius = 10;
+var galaxyFactor = 4;
+
+var starCount = 1000;
+var starSphereRadius = 50;
+
+var scene;
+var camera;
+var renderer;
+var galaxy;
+
+var cameraRotation = 0;
+
+function init() {
+	scene = new THREE.Scene();
+	camera = new THREE.PerspectiveCamera(90, aspect, 0.1, 1000);
+
+	renderer = new THREE.WebGLRenderer();
+	renderer.setSize(width, height);
+	document.body.appendChild( renderer.domElement );
+	
+	addLights(scene);
+	
+	addGalaxy(scene);
+
+	addBackground(scene);
+	
+	render();
+}
+
+function addLights(scene) {
+	scene.add(new THREE.AmbientLight(0x202020));
+	
+	var light = new THREE.PointLight(0xffff80, 1, 100);
+	light.position.set(0, 5, 0);
+	scene.add(light);
+	
+	light = new THREE.PointLight(0xffff80, 1, 100);
+	light.position.set(0, -5, 0);
+	scene.add(light);
+}
+
+function addDebug(scene) {
+//	scene.add(new THREE.Mesh(new THREE.CubeGeometry(2, 2, 1), new THREE.MeshBasicMaterial({color: 0xffffff})));
+	scene.add(new THREE.AxisHelper(5));
+}
+
+function addGalaxy(scene) {
+	var clusterGeo = new THREE.SphereGeometry(clusterSize, 16, 6);
+	for (var i = 0; i < clusterCount; i++) {
+		var rot = THREE.Math.randFloatSpread(2 * Math.PI);
+		var dist = Math.sqrt(THREE.Math.randFloatSpread(galaxyRadius)) * galaxyFactor;
+		var max = Math.sqrt(galaxyRadius) * galaxyFactor;
+		var normDist = dist / max;
+		var red = 0.1 / normDist;
+		var green = 0.02 / normDist;
+		var blue = Math.sin(normDist * 2) + 0.02 / normDist - .03;
+		var material = new THREE.MeshPhongMaterial({color: new THREE.Color(red, green, blue)});
+		cluster = new THREE.Mesh(clusterGeo, material);
+		cluster.position.x = Math.sin(rot) * dist;
+		cluster.position.z = Math.cos(rot) * dist;
+		cluster.scale.y = .1;
+		scene.add(cluster);
+	}
+}
+
+function addBackground(scene) {
+	var pointGeo = new THREE.Geometry();
+	for (var i = 0; i < starCount; i ++ ) {
+		var lat = THREE.Math.randFloatSpread(2 * Math.PI);
+		var lng = THREE.Math.randFloatSpread(2 * Math.PI);
+		var v = new THREE.Vector3();
+		v.x = Math.sin(lng) * Math.cos(lat) * starSphereRadius;
+		v.y = Math.sin(lat) * starSphereRadius;
+		v.z = Math.cos(lng) * Math.cos(lat) * starSphereRadius;
+		pointGeo.vertices.push(v);
+	}
+	var particles = new THREE.Points(pointGeo, new THREE.PointsMaterial({color: 0x888888, size: 0.1}));
+	scene.add(particles);
+}
+
+function render() {
+	var inc = Math.PI / 256;
+	cameraRotation += inc;
+	camera.position.y = Math.sin(cameraRotation) * cameraDistance;
+	camera.position.z = Math.cos(cameraRotation) * cameraDistance;
+	camera.rotateOnAxis(new THREE.Vector3(1, 0, 0), -inc);
+	requestAnimationFrame(render);
+	renderer.render(scene, camera);
+}
+
+		</script>
+	</head>
+	<body onload="init()">
+	</body>
+</html>
